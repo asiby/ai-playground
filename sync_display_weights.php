@@ -100,54 +100,69 @@ foreach ($form_weights as $name => $weight) {
 echo "\n";
 
 // ---------------------------------------------------------------------------
-// Update view display weights
+// Update view display: sync weights and make hidden fields visible
 // ---------------------------------------------------------------------------
 
 $view_components = $view_display->getComponents();
 
-if (empty($view_components)) {
-  echo "INFO: No visible fields in the '{$view_mode}' view display. Nothing to do.\n";
-  exit(0);
-}
+$updated   = [];  // weight changed for an already-visible field
+$made_visible = []; // field was hidden in view display, now made visible
+$skipped   = [];  // visible in view display but absent from form display
+$unchanged = [];  // already visible with the correct weight
 
-$updated  = [];
-$skipped  = [];
-$unchanged = [];
+foreach ($form_weights as $field_name => $new_weight) {
+  $existing = $view_display->getComponent($field_name);
 
-foreach ($view_components as $field_name => $settings) {
-  if (!isset($form_weights[$field_name])) {
-    // Visible in view display but not in form display (e.g. pseudo-fields).
-    $skipped[] = $field_name;
+  if ($existing === NULL) {
+    // Field is hidden in the view display — make it visible with a default
+    // formatter and the weight from the form display.
+    $view_display->setComponent($field_name, ['weight' => $new_weight]);
+    $made_visible[$field_name] = $new_weight;
     continue;
   }
 
-  $new_weight = $form_weights[$field_name];
-  $old_weight = $settings['weight'];
+  $old_weight = $existing['weight'];
 
   if ($old_weight === $new_weight) {
     $unchanged[] = $field_name;
     continue;
   }
 
-  $settings['weight'] = $new_weight;
-  $view_display->setComponent($field_name, $settings);
-
+  $existing['weight'] = $new_weight;
+  $view_display->setComponent($field_name, $existing);
   $updated[$field_name] = ['old' => $old_weight, 'new' => $new_weight];
+}
+
+// Fields visible in the view display that have no counterpart in the form
+// display (e.g. pseudo-fields like "links") are left untouched.
+foreach ($view_components as $field_name => $settings) {
+  if (!isset($form_weights[$field_name])) {
+    $skipped[] = $field_name;
+  }
 }
 
 // ---------------------------------------------------------------------------
 // Report
 // ---------------------------------------------------------------------------
 
+if (!empty($made_visible)) {
+  echo "Fields made visible (" . count($made_visible) . "):\n";
+  foreach ($made_visible as $name => $weight) {
+    printf("  %-40s (weight: %d)\n", $name, $weight);
+  }
+  echo "\n";
+}
+
 if (!empty($updated)) {
-  echo "Fields to update (" . count($updated) . "):\n";
+  echo "Fields with updated weight (" . count($updated) . "):\n";
   foreach ($updated as $name => $weights) {
     printf("  %-40s %d  =>  %d\n", $name, $weights['old'], $weights['new']);
   }
   echo "\n";
 }
-else {
-  echo "No weight changes needed — view display already matches form display.\n\n";
+
+if (empty($made_visible) && empty($updated)) {
+  echo "No changes needed — view display already matches form display.\n\n";
 }
 
 if (!empty($skipped)) {
@@ -159,7 +174,7 @@ if (!empty($skipped)) {
 }
 
 if (!empty($unchanged)) {
-  echo "Fields unchanged (weights already match):\n";
+  echo "Fields unchanged (already visible with correct weight):\n";
   foreach ($unchanged as $name) {
     echo "  - {$name}\n";
   }
@@ -170,7 +185,7 @@ if (!empty($unchanged)) {
 // Save
 // ---------------------------------------------------------------------------
 
-if (!empty($updated)) {
+if (!empty($made_visible) || !empty($updated)) {
   if ($dry_run) {
     echo "[DRY RUN] Changes NOT saved.\n";
   }
