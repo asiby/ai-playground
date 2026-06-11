@@ -12,12 +12,22 @@
 // ---------------------------------------------------------------------------
 // Parse arguments
 // ---------------------------------------------------------------------------
+// Drush php:script exposes extra CLI args (those after --) in $extra, not
+// $argv, so getopt() won't see them. Parse $extra manually instead.
 
-$options = getopt('', ['content-type:', 'view-mode:', 'dry-run']);
+$options = [];
+foreach (($extra ?? []) as $arg) {
+  if (preg_match('/^--([a-z-]+)=(.+)$/', $arg, $m)) {
+    $options[$m[1]] = $m[2];
+  }
+  elseif (preg_match('/^--([a-z-]+)$/', $arg, $m)) {
+    $options[$m[1]] = TRUE;
+  }
+}
 
 $content_type = $options['content-type'] ?? NULL;
 $view_mode    = $options['view-mode'] ?? 'default';
-$dry_run      = array_key_exists('dry-run', $options);
+$dry_run      = isset($options['dry-run']);
 
 if (empty($content_type)) {
   echo "ERROR: --content-type is required.\n";
