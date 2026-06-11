@@ -68,9 +68,17 @@ if (!$form_display || $form_display->isNew()) {
 }
 
 $view_display = $display_repo->getViewDisplay('node', $content_type, $view_mode);
-if (!$view_display || $view_display->isNew()) {
-  echo "ERROR: No '{$view_mode}' view display found for node.{$content_type}.\n";
+if (!$view_display) {
+  echo "ERROR: Could not load view display for node.{$content_type}.{$view_mode}.\n";
   exit(1);
+}
+if ($view_display->isNew()) {
+  // The display has never been saved via the UI. Persist the auto-generated
+  // defaults now so subsequent setComponent() calls have a stable base.
+  echo "INFO: View display for '{$view_mode}' has not been saved yet — initialising it now.\n";
+  if (!$dry_run) {
+    $view_display->save();
+  }
 }
 
 // ---------------------------------------------------------------------------
