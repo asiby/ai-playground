@@ -76,10 +76,20 @@ if (!$view_display || $view_display->isNew()) {
 // ---------------------------------------------------------------------------
 // Build weight map from form display (visible fields only)
 // ---------------------------------------------------------------------------
+// getComponents() only covers fields explicitly saved in the form display
+// config. Base fields and fields never touched in the UI can be missing.
+// We walk all field definitions instead and call getComponent() on each,
+// which returns the stored settings (including weight) or NULL if hidden.
+
+$field_definitions = \Drupal::service('entity_field.manager')
+  ->getFieldDefinitions('node', $content_type);
 
 $form_weights = [];
-foreach ($form_display->getComponents() as $field_name => $settings) {
-  $form_weights[$field_name] = $settings['weight'];
+foreach (array_keys($field_definitions) as $field_name) {
+  $component = $form_display->getComponent($field_name);
+  if ($component !== NULL) {
+    $form_weights[$field_name] = $component['weight'];
+  }
 }
 
 echo "Form display visible fields (" . count($form_weights) . "):\n";
