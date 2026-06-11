@@ -8,7 +8,7 @@ to write a precise, context-rich prompt for a Drupal scripting task.
 
 ## Prompt
 
-You are a Drupal 11 expert. Write a Drush PHP script (intended to be run with
+You are a Drupal 11.3.10 expert. Write a Drush PHP script (intended to be run with
 `drush php:script`) that synchronises field order from the Manage Form Display
 to the Manage Display for a given content type, without touching the Form
 Display itself.

@@ -1,6 +1,6 @@
 # drupal-sync-display-weights
 
-A Drush PHP script for Drupal 11 that synchronises field order from the
+A Drush PHP script for Drupal 11.3.10 that synchronises field order from the
 **Form Display** (Content Type → Manage Form Display) to the **Manage Display**
 (Content Type → Manage Display), without requiring any manual work in the
 admin UI.
@@ -71,7 +71,7 @@ The form display is never modified.
 
 ## Requirements
 
-- Drupal 11
+- Drupal 11.3.10
 - Drush 12+
 
 ---
