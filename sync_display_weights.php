@@ -54,23 +54,21 @@ echo str_repeat('-', 60) . "\n\n";
 // ---------------------------------------------------------------------------
 // Load entity displays
 // ---------------------------------------------------------------------------
+// Use entity_display.repository rather than a direct load() so that displays
+// which have never been explicitly saved (Drupal generates them on the fly)
+// are still returned correctly.
 
-/** @var \Drupal\Core\Entity\Display\EntityFormDisplayInterface $form_display */
-$form_display = \Drupal::entityTypeManager()
-  ->getStorage('entity_form_display')
-  ->load("node.{$content_type}.default");
+/** @var \Drupal\Core\Entity\EntityDisplayRepositoryInterface $display_repo */
+$display_repo = \Drupal::service('entity_display.repository');
 
-if (!$form_display) {
+$form_display = $display_repo->getFormDisplay('node', $content_type, 'default');
+if (!$form_display || $form_display->isNew()) {
   echo "ERROR: No default form display found for node.{$content_type}.\n";
   exit(1);
 }
 
-/** @var \Drupal\Core\Entity\Display\EntityViewDisplayInterface $view_display */
-$view_display = \Drupal::entityTypeManager()
-  ->getStorage('entity_view_display')
-  ->load("node.{$content_type}.{$view_mode}");
-
-if (!$view_display) {
+$view_display = $display_repo->getViewDisplay('node', $content_type, $view_mode);
+if (!$view_display || $view_display->isNew()) {
   echo "ERROR: No '{$view_mode}' view display found for node.{$content_type}.\n";
   exit(1);
 }
