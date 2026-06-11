@@ -149,6 +149,17 @@ View display saved successfully.
 
 ---
 
+## Generation Prompt
+
+[`PROMPT.md`](./PROMPT.md) contains the single, self-contained prompt that
+would reproduce this script directly — without iteration. It documents every
+non-obvious technical decision (why `$extra` instead of `getopt()`, why
+`getFieldDefinitions` instead of `getComponents()`, why
+`entity_display.repository` instead of a direct `load()`, etc.) and is
+provided as learning material for writing precise Drupal scripting prompts.
+
+---
+
 ## Credits
 
 Created by [Claude](https://claude.ai) (Anthropic Sonnet) with prompts
